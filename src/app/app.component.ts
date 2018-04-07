@@ -9,28 +9,32 @@ import 'rxjs/add/operator/map';
 })
 export class AppComponent implements OnInit {
   app = 'myapp';
+  app_id = '';
+  tasksHealthy = 'unknown';
+  tasksRunning = 'unknown';
 
   constructor(private _http: HttpClient) {
   }
  
   ngOnInit() {
-const httpOptions = {
-  headers: new HttpHeaders({
-    'Access-Control-Allow-Origin': '*',
-    'Content-Type':  'application/json',
-    'Authorization': 'token=eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjMxMDQ2MzYsImlhdCI6MTUyMjY3MjYzNiwiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.WnfI0xdFuAC4ICiCzv9MdqlvTLbvBTLpPVvUi3Icgmk'
-  })
-};
+    const httpOptions = {
+      headers: new HttpHeaders({
+        //'Access-Control-Allow-Origin': '*',
+        'Content-Type':  'application/json',
+        'Authorization': 'token=eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjM1NTM0ODQsImlhdCI6MTUyMzEyMTQ4NCwiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.0mM9qaNenUgUnT3NZS71_9reLTojKRdGaqRzTOO-X4I'
+      })
+    };
 
     this._http.post('http://jsonplaceholder.typicode.com/posts', {
       title: 'foo',
       body: 'bar',
       userId: 1
-    },httpOptions)
+    //})
+    }, httpOptions)
       .subscribe(
         res => {
           console.log(res);
-          console.log(httpOptions);
+          //console.log(httpOptions);
         },
         err => {
           console.log("Error occured");
@@ -39,9 +43,16 @@ const httpOptions = {
 
 
     this._http.get(
-      'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',httpOptions) 
+      //'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',httpOptions) 
+      'http://195.201.30.230:4200/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',httpOptions) 
       .subscribe(
         res => {
+          this.app_id = res.app.id;
+          this.tasksRunning = res.app.tasksRunning;
+          this.tasksHealthy = res.app.tasksHealthy;
+          console.log(this.app_id);
+          console.log(this.tasksRunning);
+          console.log(this.tasksHealthy);
           console.log(res);
         },
         err => {
@@ -49,10 +60,11 @@ const httpOptions = {
         }
       );
 
-
 /*
+
     this._http.post(
-      'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service2', 
+      //'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service2', 
+      'http://http://195.201.30.230:4200/service/marathon/v2/apps/mynamespace/nginx-hello-world-service2', 
 {
   "id": "/mynamespace/nginx-hello-world-service2",
   "backoffFactor": 1.15,
