@@ -42,7 +42,7 @@ export class AppComponent implements OnInit {
       );
 
 
-    this._http.get(
+    this._http.get<any>(
       //'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',httpOptions) 
       'http://195.201.30.230:4200/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',httpOptions) 
       .subscribe(
