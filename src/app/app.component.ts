@@ -1,17 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { TimerObservable } from "rxjs/observable/TimerObservable";
+import 'rxjs/add/operator/takeWhile';
+
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   app = 'myapp';
   app_id = 'unknown';
+  deployments = 'unknown';
+  tasksStaged = 'unknown';
   tasksHealthy = 'unknown';
+  tasksUnhealthy = 'unknown';
   tasksRunning = 'unknown';
   httpOptions = null;
+  intervalTimerMsec = 2500;
+  private alive: boolean = true;
 
   constructor(private _http: HttpClient) {
   }
@@ -19,25 +27,53 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     this.httpOptions = {
       headers: new HttpHeaders({
-        //'Access-Control-Allow-Origin': '*',
         'Content-Type':  'application/json',
         'Authorization': 'token=eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjM1NTM0ODQsImlhdCI6MTUyMzEyMTQ4NCwiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.0mM9qaNenUgUnT3NZS71_9reLTojKRdGaqRzTOO-X4I'
       })
     };
 
-    this.readApp();
+
+    TimerObservable.create(0, this.intervalTimerMsec)
+      .takeWhile(() => this.alive)
+      .subscribe(() => {
+        this.getMarathonAppsService()
+          .subscribe(
+            res => {
+              this.app_id = res.app.id;
+              this.deployments = res.app.deployments.length;
+              this.tasksStaged = res.app.tasksStaged;
+              this.tasksRunning = res.app.tasksRunning;
+              this.tasksHealthy = res.app.tasksHealthy;
+              this.tasksUnhealthy = res.app.tasksUnhealthy;
+              console.log(this.app_id);
+              console.log(this.deployments);
+              console.log(this.tasksRunning);
+              console.log(this.tasksHealthy);
+              console.log(res);
+            },
+            err => {
+              console.log("Error occured");
+            }
+          );
+      });
   }
 
+  ngOnDestroy(){
+    this.alive = false;
+  }
+
+  getMarathonAppsService(){
+    return this._http.get<any>(
+      'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',this.httpOptions) ;
+  }
 
   setInstances( runningInstances : Integer ) {
    this._http.patch<any>(
       'http://94.130.187.229/service/marathon/v2/apps', 
-      //[{"id": this.app_id,"instances": 2}], this.httpOptions)
       [{"id": "/mynamespace/nginx-hello-world-service","instances": runningInstances}], this.httpOptions)
       .subscribe(
         res => {
           console.log(res);
-          this.readApp();
         },
         err => {
           console.log("Error occured");
@@ -46,13 +82,11 @@ export class AppComponent implements OnInit {
   }
 
  
-  //ngOnInit() {
-  readApp() {
+  jsonplaceholderPost() {
     this._http.post('http://jsonplaceholder.typicode.com/posts', {
       title: 'foo',
       body: 'bar',
       userId: 1
-    //})
     }, this.httpOptions)
       .subscribe(
         res => {
@@ -63,32 +97,14 @@ export class AppComponent implements OnInit {
           console.log("Error occured");
         }
       );
+  }
 
 
-    this._http.get<any>(
-      'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',this.httpOptions) 
-      //'http://195.201.30.230:4200/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',this.httpOptions) 
-      .subscribe(
-        res => {
-          this.app_id = res.app.id;
-          this.tasksRunning = res.app.tasksRunning;
-          this.tasksHealthy = res.app.tasksHealthy;
-          console.log(this.app_id);
-          console.log(this.tasksRunning);
-          console.log(this.tasksHealthy);
-          console.log(res);
-        },
-        err => {
-          console.log("Error occured");
-        }
-      );
 
-
-/*
-
-    this._http.post(
-      //'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service2', 
-      'http://http://195.201.30.230:4200/service/marathon/v2/apps/mynamespace/nginx-hello-world-service2', 
+  postMarathonAppsService(){
+    return this._http.post<any>(
+      //'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service', 
+      'http://http://195.201.30.230:4200/service/marathon/v2/apps/mynamespace/nginx-hello-world-service', 
 {
   "id": "/mynamespace/nginx-hello-world-service2",
   "backoffFactor": 1.15,
@@ -163,15 +179,6 @@ export class AppComponent implements OnInit {
 ,
 this.httpOptions
     )
-      .subscribe(
-        res => {
-          console.log(res);
-        },
-        err => {
-          console.log("Error occured");
-        }
-      );
-*/
 
   }
 
