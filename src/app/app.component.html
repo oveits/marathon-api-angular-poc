@@ -1,3 +1,6 @@
 <h2>App ID: <span [innerHTML]="app_id">Loading...</span></h2>
 <h2>Number of running Containers: <span [innerHTML]="tasksRunning">Loading...</span></h2>
 <h2>Number of healthy Containers: <span [innerHTML]="tasksHealthy">Loading...</span></h2>
+<button (click)="setInstances(1)">Set to 1 Instance</button>
+<button (click)="setInstances(2)">Set to 2 Instances</button>
+<button (click)="setInstances(3)">Set to 3 Instances</button>

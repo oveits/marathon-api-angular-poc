@@ -8,15 +8,16 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 })
 export class AppComponent implements OnInit {
   app = 'myapp';
-  app_id = '';
+  app_id = 'unknown';
   tasksHealthy = 'unknown';
   tasksRunning = 'unknown';
+  httpOptions = null;
 
   constructor(private _http: HttpClient) {
   }
- 
+
   ngOnInit() {
-    const httpOptions = {
+    this.httpOptions = {
       headers: new HttpHeaders({
         //'Access-Control-Allow-Origin': '*',
         'Content-Type':  'application/json',
@@ -24,16 +25,39 @@ export class AppComponent implements OnInit {
       })
     };
 
+    this.readApp();
+  }
+
+
+  setInstances( runningInstances : Integer ) {
+   this._http.patch<any>(
+      'http://94.130.187.229/service/marathon/v2/apps', 
+      //[{"id": this.app_id,"instances": 2}], this.httpOptions)
+      [{"id": "/mynamespace/nginx-hello-world-service","instances": runningInstances}], this.httpOptions)
+      .subscribe(
+        res => {
+          console.log(res);
+          this.readApp();
+        },
+        err => {
+          console.log("Error occured");
+        }
+      );
+  }
+
+ 
+  //ngOnInit() {
+  readApp() {
     this._http.post('http://jsonplaceholder.typicode.com/posts', {
       title: 'foo',
       body: 'bar',
       userId: 1
     //})
-    }, httpOptions)
+    }, this.httpOptions)
       .subscribe(
         res => {
           console.log(res);
-          //console.log(httpOptions);
+          //console.log(this.httpOptions);
         },
         err => {
           console.log("Error occured");
@@ -42,8 +66,8 @@ export class AppComponent implements OnInit {
 
 
     this._http.get<any>(
-      //'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',httpOptions) 
-      'http://195.201.30.230:4200/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',httpOptions) 
+      'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',this.httpOptions) 
+      //'http://195.201.30.230:4200/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',this.httpOptions) 
       .subscribe(
         res => {
           this.app_id = res.app.id;
@@ -58,6 +82,7 @@ export class AppComponent implements OnInit {
           console.log("Error occured");
         }
       );
+
 
 /*
 
@@ -136,7 +161,7 @@ export class AppComponent implements OnInit {
   "constraints": []
 }
 ,
-httpOptions
+this.httpOptions
     )
       .subscribe(
         res => {
@@ -149,4 +174,5 @@ httpOptions
 */
 
   }
+
 }
