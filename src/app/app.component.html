@@ -1,17 +1,13 @@
-<!-- <li *ngFor="let app of getApps() | async">{{app.id}}</li>  -->
-<!-- <div>myApps: {{myApps | async}}</div>  -->
-<div>marathonApps: {{marathonApps | async}}</div> 
-<div *ngFor="let marathonApp of marathonApps">
-  <div [innerHTML]="marathonApp.id"></div>
-</div>
-<h2>App ID: <a href="http://195.201.17.1{{app_id}}" [innerHTML]="app_id">Loading...</a></h2>
 <h2>Deployments: <span [innerHTML]="deployments">Loading...</span></h2>
-<h2>Number of staged Containers: <span [innerHTML]="tasksStaged">Loading...</span></h2>
-<h2>Number of running Containers: <span [innerHTML]="tasksRunning">Loading...</span></h2>
-<h2>Number of healthy Containers: <span [innerHTML]="tasksHealthy">Loading...</span></h2>
-<h2>Number of unhealthy Containers: <span [innerHTML]="tasksUnhealthy">Loading...</span></h2>
-<button (click)="setInstances('mynamespace', 'nginx-hello-world-service', 1)">Set to 1 Instance</button>
-<button (click)="setInstances('mynamespace', 'nginx-hello-world-service', 2)">Set to 2 Instances</button>
-<button (click)="setInstances('mynamespace', 'nginx-hello-world-service', 3)">Set to 3 Instances</button>
-<button (click)="setInstances('mynamespace', 'nginx-hello-world-service', 4)">Set to 4 Instances</button>
-<!-- Next update in {{intervalTimerMsec}} msec -->
+<div *ngFor="let marathonApp of marathonApps">
+  <h1>App ID: <a href="http://195.201.17.1{{marathonApp.id}}" [innerHTML]="marathonApp.id">Loading...</a></h1>
+  <h2>Number of staged Containers: <span [innerHTML]="marathonApp.tasksStaged">Loading...</span></h2>
+  <h2>Number of running Containers: <span [innerHTML]="marathonApp.tasksRunning">Loading...</span></h2>
+  <h2>Number of healthy Containers: <span [innerHTML]="marathonApp.tasksHealthy">Loading...</span></h2>
+  <h2>Number of unhealthy Containers: <span [innerHTML]="marathonApp.tasksUnhealthy">Loading...</span></h2>
+  <button (click)="setInstances(marathonApp.id, 1)">Set to 1 Instance</button>
+  <button (click)="setInstances(marathonApp.id, 2)">Set to 2 Instances</button>
+  <button (click)="setInstances(marathonApp.id, 3)">Set to 3 Instances</button>
+  <button (click)="setInstances(marathonApp.id, 4)">Set to 4 Instances</button>
+</div>
+Next update in {{intervalTimerMsec}} msec

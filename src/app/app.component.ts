@@ -20,7 +20,7 @@ export class AppComponent implements OnInit, OnDestroy {
   tasksUnhealthy = 'unknown';
   tasksRunning = 'unknown';
   httpOptions = null;
-  intervalTimerMsec = 25000000;
+  intervalTimerMsec = 2500;
   private alive : boolean = true;
   private marathonURL : String = "http://94.130.187.229/service/marathon/v2";
   //marathonApps : Observable<App[]> = null;
@@ -54,14 +54,24 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.myApps = this.getAppsWithPipe();
 
-    this.getApps().subscribe(
-            res => { 
-              console.log('getApps res:'); 
-              console.log(res.apps); 
-              this.marathonApps = res.apps; 
-              console.log('this.marathonApps follows:');
-              console.log(this.marathonApps);
-    });
+    TimerObservable.create(0, this.intervalTimerMsec)
+      .takeWhile(() => this.alive)
+      .subscribe(() => {
+        this.getApps()
+          .subscribe(
+                res => { 
+                  console.log('getApps res:'); 
+                  console.log(res.apps); 
+                  this.marathonApps = res.apps; 
+                  console.log('this.marathonApps follows:');
+                  console.log(this.marathonApps);
+            },
+            err => {
+              console.log("Error occured");
+            }
+          );
+      });
+
 
     TimerObservable.create(0, this.intervalTimerMsec)
       .takeWhile(() => this.alive)
@@ -90,7 +100,7 @@ export class AppComponent implements OnInit, OnDestroy {
             }
           );
       });
-  }
+  } // end ngOnInit()
 
   ngOnDestroy(){
     this.alive = false;
@@ -118,14 +128,35 @@ export class AppComponent implements OnInit, OnDestroy {
       //'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',this.httpOptions) ;
   }
 
-  patchMarathonAppsService( namespace : String, serviceName : String, body : Object ){
+  patchMarathonAppsService( body : Object ){
     return this._http.patch<any>(
       this.marathonURL + '/' + 'apps', 
       body,
       this.httpOptions) ;
   }
 
-  setInstances( namespace : String, serviceName : String, runningInstances : Integer ) {
+  patchMarathonAppsServiceOld2( namespace : String, serviceName : String, body : Object ){
+    return this._http.patch<any>(
+      this.marathonURL + '/' + 'apps', 
+      body,
+      this.httpOptions) ;
+  }
+
+  setInstances( id : String, runningInstances : Integer ) {
+   //this.deployments = this.deployments + 1;
+   var body = [{"id": id,"instances": runningInstances}];
+   this.patchMarathonAppsService( body )
+      .subscribe(
+        res => {
+          console.log(res);
+        },
+        err => {
+          console.log("Error occured");
+        }
+      );
+  }
+
+  setInstancesOld2( namespace : String, serviceName : String, runningInstances : Integer ) {
    //this.deployments = this.deployments + 1;
    var body = [{"id": "/" + namespace + "/" + serviceName,"instances": runningInstances}];
    this.patchMarathonAppsService( 'mynamespace', 'nginx-hello-world-service', body )
