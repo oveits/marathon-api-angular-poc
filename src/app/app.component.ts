@@ -1,8 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { TimerObservable } from "rxjs/observable/TimerObservable";
+import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/takeWhile';
 import { catchError, map, tap } from 'rxjs/operators';
+import { isArray } from '@angular/facade/lang';
+// not tested:
+//import 'rxjs/add/operator/retry';
 
 
 @Component({
@@ -20,12 +24,14 @@ export class AppComponent implements OnInit, OnDestroy {
   tasksUnhealthy = 'unknown';
   tasksRunning = 'unknown';
   httpOptions = null;
-  intervalTimerMsec = 2500;
+  intervalTimerMsec = 5000;
   private alive : boolean = true;
   private marathonURL : String = "http://94.130.187.229/service/marathon/v2";
   //marathonApps : Observable<App[]> = null;
-  marathonApps : App[] = [{"id": 1}];
+  marathonApps : App[] = null;
+  marathonAppsConfigured = null; //[{"id": '/mynamespace/nginx-hello-world-service', "instances": 1}];
   myApps = null;
+  ticks = 0;
   token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjM5ODk4NTMsImlhdCI6MTUyMzU1Nzg1MywiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.NFUW50Gzl78qfI99OPuM6YrxfU4OYLhzWQz7kfoEJPY';
 
   constructor(private _http: HttpClient) {
@@ -54,6 +60,14 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.myApps = this.getAppsWithPipe();
 
+/*
+    let timer = Observable.timer(this.intervalTimerMsec,this.intervalTimerMsec);
+    timer.subscribe(t=> {
+      this.ticks = t;
+      //this.updateAppsAll();
+    });
+*/
+
     TimerObservable.create(0, this.intervalTimerMsec)
       .takeWhile(() => this.alive)
       .subscribe(() => {
@@ -63,6 +77,12 @@ export class AppComponent implements OnInit, OnDestroy {
                   console.log('getApps res:'); 
                   console.log(res.apps); 
                   this.marathonApps = res.apps; 
+                  if (this.marathonAppsConfigured == null && this.marathonApps != null) { 
+                    this.marathonAppsConfigured = this.marathonApps; 
+                  }
+                  if (this.marathonAppsConfigured && this.marathonApps) {
+                    this.updateAppsAll();
+                  }
                   console.log('this.marathonApps follows:');
                   console.log(this.marathonApps);
             },
@@ -71,7 +91,7 @@ export class AppComponent implements OnInit, OnDestroy {
             }
           );
       });
-
+    
 
     TimerObservable.create(0, this.intervalTimerMsec)
       .takeWhile(() => this.alive)
@@ -94,6 +114,8 @@ export class AppComponent implements OnInit, OnDestroy {
               console.log(this.tasksRunning);
               console.log(this.tasksHealthy);
               console.log(res);
+              console.log('this');
+              console.log(this);
             },
             err => {
               console.log("Error occured");
@@ -104,6 +126,25 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(){
     this.alive = false;
+  }
+
+  updateAppsAll() {
+              console.log('this');
+              console.log(this);
+    //if(this && this.marathonAppsConfigured){
+    if(this
+       && this.marathonAppsConfigured 
+       && Array.isArray(this.marathonAppsConfigured)){
+      for(let index in this.marathonAppsConfigured){
+         console.log(index);
+         console.log(this.marathonAppsConfigured[index]);
+         this.updateInstances( this.marathonAppsConfigured[index].id );
+      }
+    } // end if(this.marathonAppsConfigured != null)
+  } // end updateAppsAll()
+
+  findMarathonAppById( id : String ){
+      return this.marathonApps.find(function (item) { return item.id === id; });
   }
 
   getAppsWithPipe(): Observable<App[]>{
@@ -121,6 +162,8 @@ export class AppComponent implements OnInit, OnDestroy {
   getApps(): Observable<App[]>{
     return this._http.get<App[]>(this.marathonURL + '/' + 'apps' + '/', this.httpOptions);
   }
+/*
+*/
 
   getMarathonAppsService( namespace : String, serviceName : String ){
     return this._http.get(
@@ -142,18 +185,37 @@ export class AppComponent implements OnInit, OnDestroy {
       this.httpOptions) ;
   }
 
-  setInstances( id : String, runningInstances : Integer ) {
+  setInstances( id : String, instances : Integer ) {
    //this.deployments = this.deployments + 1;
-   var body = [{"id": id,"instances": runningInstances}];
+   var body = [{"id": id,"instances": instances}];
+   console.log(this.marathonApps[1]);
+   //this.marathonApps[1].configuredInstances = instances;
+   console.log(this.marathonApps[1]);
    this.patchMarathonAppsService( body )
+// not tested:
+//.retry(3)
       .subscribe(
         res => {
+          // OV
           console.log(res);
         },
         err => {
           console.log("Error occured");
         }
       );
+  }
+
+  updateInstances( id : String ) {
+    console.log(this.marathonApps);
+    if( this.marathonApps != null ){
+      var marathonApp = this.marathonApps.find(function (item) { return item.id === id; });
+      console.log(marathonApp);
+      var marathonAppConfigured = this.marathonAppsConfigured.find(function (marathonAppConfigured) { return marathonAppConfigured.id === id; });
+      console.log(marathonAppConfigured);
+      if( marathonApp.instances != marathonAppConfigured.instances ){
+        this.setInstances( id, marathonAppConfigured.instances);
+      }
+    }
   }
 
   setInstancesOld2( namespace : String, serviceName : String, runningInstances : Integer ) {
@@ -290,6 +352,7 @@ this.httpOptions
   interface App {
     id: String;
     deployments: String;
+    configuredInstances: String;
     tasksStaged: String;
     tasksHealthy: String;
     tasksUnhealthy: String;
