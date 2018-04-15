@@ -9,13 +9,8 @@
     <h2>Number of running Containers: <span [innerHTML]="marathonApp.tasksRunning">Loading...</span></h2>
     <h2>Number of healthy Containers: <span [innerHTML]="marathonApp.tasksHealthy">Loading...</span></h2>
     <h2>Number of unhealthy Containers: <span [innerHTML]="marathonApp.tasksUnhealthy">Loading...</span></h2>
-    <button (click)="setInstances(marathonApp.id, 0)">Suspend</button>
   </span>
+  <button (click)="this.marathonAppConfigured.instances = 0;updateInstances(marathonAppConfigured.id);">Suspend</button>
   <button (click)="this.marathonAppConfigured.instances = this.marathonAppConfigured.instances + 1;updateInstances(marathonAppConfigured.id)">Add an Instance</button>
   <button (click)="this.marathonAppConfigured.instances = this.marathonAppConfigured.instances - 1;updateInstances(marathonAppConfigured.id)">Delete an Instance</button>
-<!--
-  <button (click)="this.marathonAppConfigured.instances = this.marathonAppConfigured.instances + 1">Add an Instance</button>
-  <button (click)="this.marathonAppConfigured.instances = this.marathonAppConfigured.instances - 1">Delete an Instance</button>
-  <button (click)="updateInstances(this.marathonAppConfigured.id);">Update Instances</button>
--->
 </div>

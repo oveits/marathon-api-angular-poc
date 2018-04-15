@@ -15,23 +15,14 @@ import { isArray } from '@angular/facade/lang';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit, OnDestroy {
-  app = 'myapp';
-  app_id = 'unknown';
-  myapp: App;
-  deployments = 'unknown';
-  tasksStaged = 'unknown';
-  tasksHealthy = 'unknown';
-  tasksUnhealthy = 'unknown';
-  tasksRunning = 'unknown';
   httpOptions = null;
   intervalTimerMsec = 5000;
   private alive : boolean = true;
   private marathonURL : String = "http://94.130.187.229/service/marathon/v2";
-  //marathonApps : Observable<App[]> = null;
-  marathonApps : App[] = null;
+  marathonApps : Observable<App[]> = null;
+  //marathonApps : App[] = null;
   marathonAppsConfigured = null; //[{"id": '/mynamespace/nginx-hello-world-service', "instances": 1}];
-  myApps = null;
-  ticks = 0;
+  //ticks = 0;
   token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjM5ODk4NTMsImlhdCI6MTUyMzU1Nzg1MywiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.NFUW50Gzl78qfI99OPuM6YrxfU4OYLhzWQz7kfoEJPY';
 
   constructor(private _http: HttpClient) {
@@ -45,26 +36,13 @@ export class AppComponent implements OnInit, OnDestroy {
       })
     };
 
-/*
-    this.listMarathonAppsService()
-          .subscribe(
-            res => {
-              this.marathonApps = res;
-              console.log(res);
-            },
-            err => {
-              console.log("Error occured");
-            }
-          );
-*/
-
     this.myApps = this.getAppsWithPipe();
 
 /*
     let timer = Observable.timer(this.intervalTimerMsec,this.intervalTimerMsec);
     timer.subscribe(t=> {
       this.ticks = t;
-      //this.updateAppsAll();
+      this.updateAppsAll();
     });
 */
 
@@ -93,55 +71,11 @@ export class AppComponent implements OnInit, OnDestroy {
       });
     
 
-    TimerObservable.create(0, this.intervalTimerMsec)
-      .takeWhile(() => this.alive)
-      .subscribe(() => {
-        this.getMarathonAppsService('mynamespace', 'nginx-hello-world-service')
-          .subscribe(
-            res => {
-              this.myapp = <App>res.app;
-              console.log('myapp.id = ' + this.myapp.id);
-              console.log(this.myapp);
-              console.log('myapp.disk = ' + this.myapp.disk);
-              this.app_id = res.app.id;
-              this.deployments = res.app.deployments.length;
-              this.tasksStaged = res.app.tasksStaged;
-              this.tasksRunning = res.app.tasksRunning;
-              this.tasksHealthy = res.app.tasksHealthy;
-              this.tasksUnhealthy = res.app.tasksUnhealthy;
-              console.log(this.app_id);
-              console.log(this.deployments);
-              console.log(this.tasksRunning);
-              console.log(this.tasksHealthy);
-              console.log(res);
-              console.log('this');
-              console.log(this);
-            },
-            err => {
-              console.log("Error occured");
-            }
-          );
-      });
   } // end ngOnInit()
 
   ngOnDestroy(){
     this.alive = false;
   }
-
-  updateAppsAll() {
-              console.log('this');
-              console.log(this);
-    //if(this && this.marathonAppsConfigured){
-    if(this
-       && this.marathonAppsConfigured 
-       && Array.isArray(this.marathonAppsConfigured)){
-      for(let index in this.marathonAppsConfigured){
-         console.log(index);
-         console.log(this.marathonAppsConfigured[index]);
-         this.updateInstances( this.marathonAppsConfigured[index].id );
-      }
-    } // end if(this.marathonAppsConfigured != null)
-  } // end updateAppsAll()
 
   findMarathonAppById( id : String ){
       return this.marathonApps.find(function (item) { return item.id === id; });
@@ -162,8 +96,6 @@ export class AppComponent implements OnInit, OnDestroy {
   getApps(): Observable<App[]>{
     return this._http.get<App[]>(this.marathonURL + '/' + 'apps' + '/', this.httpOptions);
   }
-/*
-*/
 
   getMarathonAppsService( namespace : String, serviceName : String ){
     return this._http.get(
@@ -178,25 +110,13 @@ export class AppComponent implements OnInit, OnDestroy {
       this.httpOptions) ;
   }
 
-  patchMarathonAppsServiceOld2( namespace : String, serviceName : String, body : Object ){
-    return this._http.patch<any>(
-      this.marathonURL + '/' + 'apps', 
-      body,
-      this.httpOptions) ;
-  }
-
   setInstances( id : String, instances : Integer ) {
-   //this.deployments = this.deployments + 1;
    var body = [{"id": id,"instances": instances}];
-   console.log(this.marathonApps[1]);
-   //this.marathonApps[1].configuredInstances = instances;
-   console.log(this.marathonApps[1]);
    this.patchMarathonAppsService( body )
 // not tested:
 //.retry(3)
       .subscribe(
         res => {
-          // OV
           console.log(res);
         },
         err => {
@@ -204,6 +124,21 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       );
   }
+
+  updateAppsAll() {
+              console.log('this');
+              console.log(this);
+    //if(this && this.marathonAppsConfigured){
+    if(this
+       && this.marathonAppsConfigured 
+       && Array.isArray(this.marathonAppsConfigured)){
+      for(let index in this.marathonAppsConfigured){
+         console.log(index);
+         console.log(this.marathonAppsConfigured[index]);
+         this.updateInstances( this.marathonAppsConfigured[index].id );
+      }
+    } // end if(this.marathonAppsConfigured != null)
+  } // end updateAppsAll()
 
   updateInstances( id : String ) {
     console.log(this.marathonApps);
@@ -217,55 +152,6 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     }
   }
-
-  setInstancesOld2( namespace : String, serviceName : String, runningInstances : Integer ) {
-   //this.deployments = this.deployments + 1;
-   var body = [{"id": "/" + namespace + "/" + serviceName,"instances": runningInstances}];
-   this.patchMarathonAppsService( 'mynamespace', 'nginx-hello-world-service', body )
-      .subscribe(
-        res => {
-          console.log(res);
-        },
-        err => {
-          console.log("Error occured");
-        }
-      );
-  }
-
-  setInstancesOld( runningInstances : Integer ) {
-   var body = [{"id": "/mynamespace/nginx-hello-world-service","instances": runningInstances}];
-   this._http.patch<any>(
-      'http://94.130.187.229/service/marathon/v2/apps', 
-      //[{"id": "/mynamespace/nginx-hello-world-service","instances": runningInstances}], this.httpOptions)
-      body, this.httpOptions)
-      .subscribe(
-        res => {
-          console.log(res);
-        },
-        err => {
-          console.log("Error occured");
-        }
-      );
-  }
-
- 
-  jsonplaceholderPost() {
-    this._http.post('http://jsonplaceholder.typicode.com/posts', {
-      title: 'foo',
-      body: 'bar',
-      userId: 1
-    }, this.httpOptions)
-      .subscribe(
-        res => {
-          console.log(res);
-          //console.log(this.httpOptions);
-        },
-        err => {
-          console.log("Error occured");
-        }
-      );
-  }
-
 
 
   postMarathonAppsService(){
