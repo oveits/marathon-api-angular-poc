@@ -1,16 +1,16 @@
 <h1>Apps</h1>
-<div *ngFor="let marathonAppConfigured of marathonAppsConfigured">
-  <h1><a href="http://195.201.17.1{{marathonAppConfigured.id}}" [innerHTML]="marathonAppConfigured.id">Loading...</a></h1>
-  <h2>Number of configured Containers: <span [innerHTML]="marathonAppConfigured.instances">Loading...</span></h2>
-  <span *ngFor="let marathonApp of [findMarathonAppById(marathonAppConfigured.id)]">
-    <h2>Number of Deployments: <span [innerHTML]="marathonApp.deployments.length">Loading...</span></h2>
-    <h2>Number of Containers: <span [innerHTML]="marathonApp.instances">Loading...</span></h2>
-    <h2>Number of staged Containers: <span [innerHTML]="marathonApp.tasksStaged">Loading...</span></h2>
-    <h2>Number of running Containers: <span [innerHTML]="marathonApp.tasksRunning">Loading...</span></h2>
-    <h2>Number of healthy Containers: <span [innerHTML]="marathonApp.tasksHealthy">Loading...</span></h2>
-    <h2>Number of unhealthy Containers: <span [innerHTML]="marathonApp.tasksUnhealthy">Loading...</span></h2>
+<div *ngFor="let restItemConfigured of restItemsConfigured">
+  <h1><a href="http://195.201.17.1{{restItemConfigured.id}}" [innerHTML]="restItemConfigured.id">Loading...</a></h1>
+  <h2>Number of configured Containers: <span [innerHTML]="restItemConfigured.instances">Loading...</span></h2>
+  <span *ngFor="let restItem of [findRestItemById(restItemConfigured.id)]">
+    <h2>Number of Deployments: <span [innerHTML]="restItem.deployments.length">Loading...</span></h2>
+    <h2>Number of Containers: <span [innerHTML]="restItem.instances">Loading...</span></h2>
+    <h2>Number of staged Containers: <span [innerHTML]="restItem.tasksStaged">Loading...</span></h2>
+    <h2>Number of running Containers: <span [innerHTML]="restItem.tasksRunning">Loading...</span></h2>
+    <h2>Number of healthy Containers: <span [innerHTML]="restItem.tasksHealthy">Loading...</span></h2>
+    <h2>Number of unhealthy Containers: <span [innerHTML]="restItem.tasksUnhealthy">Loading...</span></h2>
   </span>
-  <button (click)="this.marathonAppConfigured.instances = 0;updateInstances(marathonAppConfigured.id);">Suspend</button>
-  <button (click)="this.marathonAppConfigured.instances = this.marathonAppConfigured.instances + 1;updateInstances(marathonAppConfigured.id)">Add an Instance</button>
-  <button (click)="this.marathonAppConfigured.instances = this.marathonAppConfigured.instances - 1;updateInstances(marathonAppConfigured.id)">Delete an Instance</button>
+  <button (click)="this.restItemConfigured.instances = 0;updateInstances(restItemConfigured.id);">Suspend</button>
+  <button (click)="this.restItemConfigured.instances = this.restItemConfigured.instances + 1;updateInstances(restItemConfigured.id)">Add an Instance</button>
+  <button (click)="this.restItemConfigured.instances = this.restItemConfigured.instances - 1;updateInstances(restItemConfigured.id)">Delete an Instance</button>
 </div>

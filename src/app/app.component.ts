@@ -18,10 +18,10 @@ export class AppComponent implements OnInit, OnDestroy {
   httpOptions = null;
   intervalTimerMsec = 5000;
   private alive : boolean = true;
-  private marathonURL : String = "http://94.130.187.229/service/marathon/v2";
-  marathonApps : Observable<App[]> = null;
-  //marathonApps : App[] = null;
-  marathonAppsConfigured = null; //[{"id": '/mynamespace/nginx-hello-world-service', "instances": 1}];
+  private restURL : String = "http://94.130.187.229/service/marathon/v2/apps";
+  restItems : Observable<RestItem[]> = null;
+  //restItems : RestItem[] = null;
+  restItemsConfigured = null;
   //ticks = 0;
   token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjM5ODk4NTMsImlhdCI6MTUyMzU1Nzg1MywiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.NFUW50Gzl78qfI99OPuM6YrxfU4OYLhzWQz7kfoEJPY';
 
@@ -36,33 +36,31 @@ export class AppComponent implements OnInit, OnDestroy {
       })
     };
 
-    this.myApps = this.getAppsWithPipe();
-
 /*
     let timer = Observable.timer(this.intervalTimerMsec,this.intervalTimerMsec);
     timer.subscribe(t=> {
       this.ticks = t;
-      this.updateAppsAll();
+      this.updateRestItemsAll();
     });
 */
 
     TimerObservable.create(0, this.intervalTimerMsec)
       .takeWhile(() => this.alive)
       .subscribe(() => {
-        this.getApps()
+        this.getRestItems()
           .subscribe(
                 res => { 
-                  console.log('getApps res:'); 
+                  console.log('getRestItems res:'); 
                   console.log(res.apps); 
-                  this.marathonApps = res.apps; 
-                  if (this.marathonAppsConfigured == null && this.marathonApps != null) { 
-                    this.marathonAppsConfigured = this.marathonApps; 
+                  this.restItems = res.apps; 
+                  if (this.restItemsConfigured == null && this.restItems != null) { 
+                    this.restItemsConfigured = this.restItems; 
                   }
-                  if (this.marathonAppsConfigured && this.marathonApps) {
-                    this.updateAppsAll();
+                  if (this.restItemsConfigured && this.restItems) {
+                    this.updateRestItemsAll();
                   }
-                  console.log('this.marathonApps follows:');
-                  console.log(this.marathonApps);
+                  console.log('this.restItems follows:');
+                  console.log(this.restItems);
             },
             err => {
               console.log("Error occured");
@@ -77,42 +75,44 @@ export class AppComponent implements OnInit, OnDestroy {
     this.alive = false;
   }
 
-  findMarathonAppById( id : String ){
-      return this.marathonApps.find(function (item) { return item.id === id; });
+  findRestItemById( id : String ){
+      return this.restItems.find(function (item) { return item.id === id; });
   }
 
-  getAppsWithPipe(): Observable<App[]>{
-    return this._http.get<App[]>(this.marathonURL + '/' + 'apps' + '/', this.httpOptions)
+  getRestItemsWithPipe(): Observable<RestItem[]>{
+    return this._http.get<RestItem[]>(this.restURL + "/", this.httpOptions)
       .pipe(
         tap(),
-        //map(res => this.myApps = res),
+        //map(res => this.myRestItems = res),
         //tap(apps => this.log('fetched apps')) //,
-        //tap(apps => this.marathonApps = apps; ),
-        //catchError(this.handleError('getApps', [])
+        //tap(apps => this.restItems = apps; ),
+        //catchError(this.handleError('getRestItems', [])
        )
       );
   }
 
-  getApps(): Observable<App[]>{
-    return this._http.get<App[]>(this.marathonURL + '/' + 'apps' + '/', this.httpOptions);
+  getRestItems(): Observable<RestItem[]>{
+    return this._http.get<RestItem[]>(this.restURL + "/", this.httpOptions);
   }
 
-  getMarathonAppsService( namespace : String, serviceName : String ){
+/*
+  getRestItemsService( namespace : String, serviceName : String ){
     return this._http.get(
-      this.marathonURL + '/' + 'apps' + '/' + namespace + '/' + serviceName, this.httpOptions) ;
+      this.restURL + "/" + namespace + '/' + serviceName, this.httpOptions) ;
       //'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',this.httpOptions) ;
   }
+*/
 
-  patchMarathonAppsService( body : Object ){
+  patchRestItems( body : Object ){
     return this._http.patch<any>(
-      this.marathonURL + '/' + 'apps', 
+      this.restURL,
       body,
       this.httpOptions) ;
   }
 
   setInstances( id : String, instances : Integer ) {
    var body = [{"id": id,"instances": instances}];
-   this.patchMarathonAppsService( body )
+   this.patchRestItems( body )
 // not tested:
 //.retry(3)
       .subscribe(
@@ -125,36 +125,36 @@ export class AppComponent implements OnInit, OnDestroy {
       );
   }
 
-  updateAppsAll() {
+  updateRestItemsAll() {
               console.log('this');
               console.log(this);
-    //if(this && this.marathonAppsConfigured){
+    //if(this && this.restItemsConfigured){
     if(this
-       && this.marathonAppsConfigured 
-       && Array.isArray(this.marathonAppsConfigured)){
-      for(let index in this.marathonAppsConfigured){
+       && this.restItemsConfigured 
+       && Array.isArray(this.restItemsConfigured)){
+      for(let index in this.restItemsConfigured){
          console.log(index);
-         console.log(this.marathonAppsConfigured[index]);
-         this.updateInstances( this.marathonAppsConfigured[index].id );
+         console.log(this.restItemsConfigured[index]);
+         this.updateInstances( this.restItemsConfigured[index].id );
       }
-    } // end if(this.marathonAppsConfigured != null)
-  } // end updateAppsAll()
+    } // end if(this.restItemsConfigured != null)
+  } // end updateRestItemsAll()
 
   updateInstances( id : String ) {
-    console.log(this.marathonApps);
-    if( this.marathonApps != null ){
-      var marathonApp = this.marathonApps.find(function (item) { return item.id === id; });
-      console.log(marathonApp);
-      var marathonAppConfigured = this.marathonAppsConfigured.find(function (marathonAppConfigured) { return marathonAppConfigured.id === id; });
-      console.log(marathonAppConfigured);
-      if( marathonApp.instances != marathonAppConfigured.instances ){
-        this.setInstances( id, marathonAppConfigured.instances);
+    console.log(this.restItems);
+    if( this.restItems != null ){
+      var restItem = this.restItems.find(function (item) { return item.id === id; });
+      console.log(restItem);
+      var restItemConfigured = this.restItemsConfigured.find(function (restItemConfigured) { return restItemConfigured.id === id; });
+      console.log(restItemConfigured);
+      if( restItem.instances != restItemConfigured.instances ){
+        this.setInstances( id, restItemConfigured.instances);
       }
     }
   }
 
 
-  postMarathonAppsService(){
+  postRestItemsService(){
     return this._http.post<any>(
       //'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service', 
       'http://http://195.201.30.230:4200/service/marathon/v2/apps/mynamespace/nginx-hello-world-service', 
