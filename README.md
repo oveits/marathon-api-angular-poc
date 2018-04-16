@@ -1,3 +1,8 @@
+# Current Test Site:
+Hetzner Cloud project dcos
+dcos-master (94.130.187.229)
+GIT cloned to /root/marathon-api-angular-poc
+
 # Marathon
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.3.
