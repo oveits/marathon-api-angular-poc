@@ -2,6 +2,7 @@
 <button (click)="this.putRestItems(box.value)">Add an App</button>
 <h1>Apps</h1>
 <div *ngFor="let restItemConfigured of restItemsConfigured">
+  <!-- <span *ngIf="restItemConfigured.instances > -1 || findRestItemById(restItemConfigured.id)"> -->
   <h1><a href="http://195.201.17.1{{restItemConfigured.id}}" [innerHTML]="restItemConfigured.id">Loading...</a></h1>
   <h2>Number of configured Containers: <span [innerHTML]="restItemConfigured.instances">Loading...</span></h2>
   <span *ngFor="let restItem of [findRestItemById(restItemConfigured.id)]">
@@ -15,5 +16,8 @@
   <button (click)="this.restItemConfigured.instances = 0;updateInstances(restItemConfigured.id);">Suspend</button>
   <button (click)="this.restItemConfigured.instances = this.restItemConfigured.instances + 1;updateInstances(restItemConfigured.id)">Add an Instance</button>
   <button (click)="this.restItemConfigured.instances = this.restItemConfigured.instances - 1;updateInstances(restItemConfigured.id)">Delete an Instance</button>
+  <button (click)="this.deleteRestItem(restItemConfigured.id);">Delete an Instance (REST)</button>
+  <button (click)="this.restItemConfigured.instances = - 1;updateInstances(restItemConfigured.id)">Delete an Instance</button>
+  <!-- </span> -->
 </div>
 

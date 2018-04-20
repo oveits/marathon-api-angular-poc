@@ -84,7 +84,7 @@ export class AppComponent implements OnInit, OnDestroy {
   synchronize_a_to_b(a,b){
 
     /*
-     *  Synchronize discovered itmes of a to the array b
+     *  Synchronize discovered items of a to the array b
      *    loop through the items of a
      *    append each discovered item to the list b; if not already present
      *    sort b by IDs
@@ -102,6 +102,30 @@ export class AppComponent implements OnInit, OnDestroy {
     }
     if(changed) {b = b.sort(this.compareById);}
   }
+
+/*
+  // synchronize_b_to_a -- clean configured list from unneeded deleted items
+  synchronize_b_to_a(a,b){
+    // find items in a that are to_be_deleted and that are deleted on b and remove them
+    let changed = false;
+    to_be_deleted(item){
+       if( item.instances == -1 ){
+         return item;
+       else { return null;}
+    }
+    for(let aItem of a){
+      if(b) {
+        let found = b.find(function (bItem) { return bItem.id === aItem.id; })
+      }
+      if(!found){
+        b.push(aItem);
+        console.log('Discovered new item ' + aItem.id + '; now synchronized');
+        changed = true;
+      }
+    }
+    if(changed) {b = b.sort(this.compareById);}
+  }
+*/
 
   compareById(app1, app2){
     if (app1.id < app2.id) {
@@ -141,8 +165,10 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   patchInstances( id : String, instances : Integer ) {
-   var body = [{"id": id,"instances": instances}];
-   this.patchRestItems( body )
+
+    if( instances < 0){ return -1; }
+    var body = [{"id": id,"instances": instances}];
+    this.patchRestItems( body )
 // not tested:
 //.retry(3)
       .subscribe(
@@ -172,12 +198,40 @@ export class AppComponent implements OnInit, OnDestroy {
 
   updateInstances( id : String ) {
     console.log(this.restItems);
+
+    // if restItemsConfigured is null, we 
+    if( ! this.restItemsConfigured ) { return null; }
+    if( this.restItemsConfigured.length == 0 ) { return null; }
+    let restItemConfigured = this.restItemsConfigured.find(
+          function (restItemConfigured) { return restItemConfigured.id === id; });
+    if( ! restItemConfigured ) { return null; }
+
+    if( this.restItems ){
+      let restItem = this.restItems.find(function (item) { return item.id === id; });
+    }
+
+    // delete item
+    //if( restItemConfigured.instances == -1 && restItem ) {
+    if( restItemConfigured.instances == -1 ) {
+/*
+      if ( restItem ){
+        return this.deleteRestItem(id);
+      }
+*/
+      if( this.restItems.find(function (item) { return item.id === id; }) ){
+        return this.deleteRestItem(id);
+      }
+    }
+
+    // update item
     if( this.restItems != null ){
       var restItem = this.restItems.find(function (item) { return item.id === id; });
+      if( restItem == null && restItemConfigured.instances == -1){
+        // TODO: remove element from this.restItemsConfigured array
+      }
       console.log(restItem);
-      var restItemConfigured = this.restItemsConfigured.find(function (restItemConfigured) { return restItemConfigured.id === id; });
       console.log(restItemConfigured);
-      if( restItem.instances != restItemConfigured.instances ){
+      if( restItemConfigured.instances >= 0 && restItem.instances != restItemConfigured.instances ){
         this.patchInstances( id, restItemConfigured.instances);
       }
     }
@@ -270,6 +324,23 @@ export class AppComponent implements OnInit, OnDestroy {
 }
 ,
 this.httpOptions);
+  }
+
+  deleteRestItem( id : String ){
+    return this.deleteRestItemService(id)
+      .subscribe(
+        res => {
+          console.log(res);
+        },
+        err => {
+          console.log("Error occured");
+        }
+      );
+  }
+ 
+  deleteRestItemService( id : String ){
+    console.log("deleteRestItemsService(id = " + id + ")");
+    return this._http.delete<any>(this.restURL + "/" + id,this.httpOptions);
   }
 
   interface App {
