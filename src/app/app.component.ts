@@ -16,15 +16,16 @@ import { isArray } from '@angular/facade/lang';
 })
 export class AppComponent implements OnInit, OnDestroy {
   httpOptions = null;
+  viewRefreshIntervalTimerMsec = 5000;
+  syncIntervalTimerMsec = 5000;
   intervalTimerMsec = 5000;
   private alive : boolean = true;
   private restURL : String = "http://94.130.187.229/service/marathon/v2/apps";
-  restItems : Observable<RestItem[]> = null;
-  //restItems : RestItem[] = null;
-  restItemsConfigured = null;
-  //ticks = 0;
+  restItems : Observable<RestItem[]> = [];
+  restItemsConfigured : Observable<RestItem[]> = [];
   updateAlways=true;
-  token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjM5ODk4NTMsImlhdCI6MTUyMzU1Nzg1MywiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.NFUW50Gzl78qfI99OPuM6YrxfU4OYLhzWQz7kfoEJPY';
+  token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjQ0MzExMjksImlhdCI6MTUyMzk5OTEyOSwiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.vPd4YMQ4GFWaDeEYgaALBLKBJUFeGF6KzFIkgdMl_g0';
+  //token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjM5ODk4NTMsImlhdCI6MTUyMzU1Nzg1MywiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.NFUW50Gzl78qfI99OPuM6YrxfU4OYLhzWQz7kfoEJPY';
 
   constructor(private _http: HttpClient) {
   }
@@ -37,15 +38,22 @@ export class AppComponent implements OnInit, OnDestroy {
       })
     };
 
-/*
-    let timer = Observable.timer(this.intervalTimerMsec,this.intervalTimerMsec);
-    timer.subscribe(t=> {
-      this.ticks = t;
-      this.updateRestItemsAll();
-    });
-*/
+    /* Provision Timer
+     *   provision the target system by sending REST requests
+     */ 
+    Observable.timer(this.syncIntervalTimerMsec,this.syncIntervalTimerMsec)
+      .takeWhile(() => this.alive)
+      .subscribe(t=> {
+        // Provision the target system, if the list of configured items does not match the list of discovered items:
+        if (this.restItemsConfigured && this.restItems && this.updateAlways) {
+          this.updateRestItemsAll();
+        }
+      });
 
-    TimerObservable.create(0, this.intervalTimerMsec)
+    /* Page refresh and Syncback Timer
+     *
+     */
+    TimerObservable.create(0, this.viewRefreshIntervalTimerMsec)
       .takeWhile(() => this.alive)
       .subscribe(() => {
         this.getRestItems()
@@ -53,15 +61,13 @@ export class AppComponent implements OnInit, OnDestroy {
                 res => { 
                   console.log('getRestItems res:'); 
                   console.log(res.apps); 
-                  this.restItems = res.apps; 
-                  if (this.restItemsConfigured == null && this.restItems != null) { 
-                    this.restItemsConfigured = this.restItems; 
-                  }
-                  if (this.restItemsConfigured && this.restItems && this.updateAlways) {
-                    this.updateRestItemsAll();
-                  }
-                  console.log('this.restItems follows:');
-                  console.log(this.restItems);
+
+                  // update discovered items list:
+                  this.restItems = res.apps.sort(this.compareById);
+
+                  // add new discoverd items to the list of configured items:
+                  this.synchronize_a_to_b(this.restItems, this.restItemsConfigured);
+
             },
             err => {
               console.log("Error occured");
@@ -74,6 +80,38 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(){
     this.alive = false;
+  }
+
+  synchronize_a_to_b(a,b){
+
+    /*
+     *  Synchronize discovered itmes of a to the array b
+     *    loop through the items of a
+     *    append each discovered item to the list b; if not already present
+     *    sort b by IDs
+     */
+    let changed = false;
+    for(let aItem of a){
+      if(b) {
+        let found = b.find(function (bItem) { return bItem.id === aItem.id; })
+      }
+      if(!found){
+        b.push(aItem);
+        console.log('Discovered new item ' + aItem.id + '; now synchronized');
+        changed = true;
+      }
+    }
+    if(changed) {b = b.sort(this.compareById);}
+  }
+
+  compareById(app1, app2){
+    if (app1.id < app2.id) {
+      return -1;
+    }
+    if (app.id > app2.id) {
+      return 1;
+    }
+    return 0;
   }
 
   findRestItemById( id : String ){
@@ -96,14 +134,6 @@ export class AppComponent implements OnInit, OnDestroy {
     return this._http.get<RestItem[]>(this.restURL + "/", this.httpOptions);
   }
 
-/*
-  getRestItemsService( namespace : String, serviceName : String ){
-    return this._http.get(
-      this.restURL + "/" + namespace + '/' + serviceName, this.httpOptions) ;
-      //'http://94.130.187.229/service/marathon/v2/apps/mynamespace/nginx-hello-world-service',this.httpOptions) ;
-  }
-*/
-
   patchRestItems( body : Object ){
     return this._http.patch<any>(
       this.restURL,
@@ -111,7 +141,7 @@ export class AppComponent implements OnInit, OnDestroy {
       this.httpOptions) ;
   }
 
-  setInstances( id : String, instances : Integer ) {
+  patchInstances( id : String, instances : Integer ) {
    var body = [{"id": id,"instances": instances}];
    this.patchRestItems( body )
 // not tested:
@@ -149,7 +179,7 @@ export class AppComponent implements OnInit, OnDestroy {
       var restItemConfigured = this.restItemsConfigured.find(function (restItemConfigured) { return restItemConfigured.id === id; });
       console.log(restItemConfigured);
       if( restItem.instances != restItemConfigured.instances ){
-        this.setInstances( id, restItemConfigured.instances);
+        this.patchInstances( id, restItemConfigured.instances);
       }
     }
   }
