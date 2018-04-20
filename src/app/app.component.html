@@ -1,5 +1,5 @@
 <input #box (keyup.enter)="0">
-<button (click)="this.putRestItemsService(box.value)">Add an App</button>
+<button (click)="this.putRestItems(box.value)">Add an App</button>
 <h1>Apps</h1>
 <div *ngFor="let restItemConfigured of restItemsConfigured">
   <h1><a href="http://195.201.17.1{{restItemConfigured.id}}" [innerHTML]="restItemConfigured.id">Loading...</a></h1>

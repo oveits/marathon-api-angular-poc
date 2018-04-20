@@ -25,7 +25,6 @@ export class AppComponent implements OnInit, OnDestroy {
   restItemsConfigured : Observable<RestItem[]> = [];
   updateAlways=true;
   token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjQ0MzExMjksImlhdCI6MTUyMzk5OTEyOSwiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.vPd4YMQ4GFWaDeEYgaALBLKBJUFeGF6KzFIkgdMl_g0';
-  //token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjM5ODk4NTMsImlhdCI6MTUyMzU1Nzg1MywiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.NFUW50Gzl78qfI99OPuM6YrxfU4OYLhzWQz7kfoEJPY';
 
   constructor(private _http: HttpClient) {
   }
@@ -108,7 +107,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (app1.id < app2.id) {
       return -1;
     }
-    if (app.id > app2.id) {
+    if (app1.id > app2.id) {
       return 1;
     }
     return 0;
@@ -184,6 +183,18 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  putRestItems( id : String ){
+    return this.putRestItemsService(id)
+      .subscribe(
+        res => {
+          console.log(res);
+        },
+        err => {
+          console.log("Error occured");
+        }
+      );
+  }
+      
 
   putRestItemsService( id : String ){
     console.log("putRestItemsService(id = " + id + ")");
@@ -258,16 +269,7 @@ export class AppComponent implements OnInit, OnDestroy {
   "constraints": []
 }
 ,
-this.httpOptions)
-      .subscribe(
-        res => {
-          console.log(res);
-        },
-        err => {
-          console.log("Error occured");
-        }
-      );
-
+this.httpOptions);
   }
 
   interface App {
