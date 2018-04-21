@@ -1,7 +1,7 @@
 <input #box (keyup.enter)="0">
-<button (click)="this.putRestItems(box.value)">Add an App via REST (might take a while)</button>
-<button (click)="this.createItem(box.value, 1)">Add an App locally (more responsive)</button>
-<button (click)="this.provision_a_to_b(restItemsConfigured, restItems)">Clean deleted items</button>
+<!-- <button (click)="this.putRestItems(box.value)">Add an App via REST (might take a while)</button> -->
+<button (click)="this.createItem(box.value, 1)">Add an App</button>
+<!-- <button (click)="this.provision_a_to_b(restItemsConfigured, restItems)">Clean deleted items</button> -->
 <h1>Apps</h1>
 <div *ngFor="let restItemConfigured of restItemsConfigured">
   <!-- <span *ngIf="restItemConfigured.instances > -1 || findRestItemById(restItemConfigured.id)"> -->
@@ -15,13 +15,11 @@
     <h2>Number of healthy Containers: <span [innerHTML]="restItem.tasksHealthy">Loading...</span></h2>
     <h2>Number of unhealthy Containers: <span [innerHTML]="restItem.tasksUnhealthy">Loading...</span></h2>
   </span>
-<!--
--->
-  <button (click)="this.restItemConfigured.instances = 0;updateInstances(restItemConfigured.id);">Suspend</button>
-  <button (click)="this.restItemConfigured.instances = this.restItemConfigured.instances + 1;updateInstances(restItemConfigured.id)">Add an Instance</button>
-  <button (click)="this.restItemConfigured.instances = this.restItemConfigured.instances - 1;updateInstances(restItemConfigured.id)">Delete an Instance</button>
-  <button (click)="this.deleteRestItem(restItemConfigured.id);">Delete an Instance (REST)</button>
-  <button (click)="this.restItemConfigured.instances = - 1;updateInstances(restItemConfigured.id)">Delete an Instance</button>
+  <button (click)="this.restItemConfigured.instances = 0;updateInstances(restItemConfigured.id);">0</button>
+  <button (click)="this.restItemConfigured.instances = this.restItemConfigured.instances + 1;updateInstances(restItemConfigured.id)">+1</button>
+  <!-- <button (click)="this.deleteRestItem(restItemConfigured.id);">-1 (REST)</button> -->
+  <button (click)="this.restItemConfigured.instances = this.restItemConfigured.instances - 1;updateInstances(restItemConfigured.id)">-1</button>
+  <button (click)="this.restItemConfigured.instances = - 1;updateInstances(restItemConfigured.id)">Delete</button>
   <!-- </span> -->
 </div>
 
