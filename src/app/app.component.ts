@@ -59,6 +59,7 @@ export class AppComponent implements OnInit, OnDestroy {
           .subscribe(
                 res => { 
                   console.log('getRestItems res:'); 
+    //this.createItem("/hello", 1);
                   console.log(res.apps); 
 
                   // update discovered items list:
@@ -82,6 +83,25 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(){
     this.alive = false;
+  }
+
+  /*
+   * createItem: creates a item in the restItemsConfigured list
+   * 
+   * Parameters
+   * - id : String
+   *
+   */
+  createItem(id : String, instances : String){
+    if(!id){ return("createItem called with no id; returning");}
+    if(!instances){ instances = 1;}
+    let found = this.restItemsConfigured.find(function (item) { return item.id === id; });
+    if(typeof found === "undefined"){
+      this.restItemsConfigured.push({"id": id, "instances": instances});
+      this.restItemsConfigured = this.restItemsConfigured.sort(this.compareById);
+    } else {
+      return("cannot create item; id exists already");
+    }
   }
 
   synchronize_a_to_b(a,b){
@@ -175,7 +195,12 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   findRestItemById( id : String ){
-      return this.restItems.find(function (item) { return item.id === id; });
+      let found = this.restItems.find(function (item) { return item.id === id; });
+      if(typeof found === "undefined"){
+        return [];
+      } else {
+        return [found];
+      }
   }
 
   getRestItemsWithPipe(): Observable<RestItem[]>{
@@ -268,7 +293,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }
       console.log(restItem);
       console.log(restItemConfigured);
-      if( restItemConfigured.instances >= 0 && restItem.instances != restItemConfigured.instances ){
+      if( restItem && restItemConfigured.instances >= 0 && restItem.instances != restItemConfigured.instances ){
         this.patchInstances( id, restItemConfigured.instances);
       }
     }
