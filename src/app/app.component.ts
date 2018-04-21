@@ -293,6 +293,9 @@ export class AppComponent implements OnInit, OnDestroy {
       }
       console.log(restItem);
       console.log(restItemConfigured);
+      if( ! restItem) {
+        this.putRestItems(restItemConfigured.id);
+      }
       if( restItem && restItemConfigured.instances >= 0 && restItem.instances != restItemConfigured.instances ){
         this.patchInstances( id, restItemConfigured.instances);
       }
