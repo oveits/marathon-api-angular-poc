@@ -66,6 +66,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
                   // add new discoverd items to the list of configured items:
                   this.synchronize_a_to_b(this.restItems, this.restItemsConfigured);
+ 
+                  // provision new items and perform garbage collection (clean deleted items)
+                  this.provision_a_to_b(this.restItemsConfigured, this.restItems);
 
             },
             err => {
@@ -103,6 +106,39 @@ export class AppComponent implements OnInit, OnDestroy {
     if(changed) {b = b.sort(this.compareById);}
   }
 
+  provision_a_to_b(a,b){
+    /* 
+     * provision missing items on target system:
+     * - if an item is found in the local configured items list, 
+     *   but it is not present on the target system, then provision it (e.g. via REST PUT or POST command)
+     * delete obsolete configuration items locally:
+     * - if an item is marked as deleted and is found to be missing on the target, then it will be removed
+     */
+    let changed = false;
+    for(let aItem of a){
+      if(b) {
+        let found = b.find(function (bItem) { return bItem.id === aItem.id; })
+      }
+      if(!found){
+        if(aItem.instances == -1){  
+          // TODO: in future, let us define aItem to be of class ProvisioningElement and let us 
+          //       define an element or function provisioningElement.isDeleted() that we can use as follows:
+          //       if(aItem.isDeleted()){ ... }
+          // remove aItem from a
+          var index = a.indexOf(aItem);
+          if(index > -1){
+            a.splice(index, 1);
+          }
+        } else {
+          // provision item
+        }
+        //b.push(aItem);
+        //console.log('Discovered new item ' + aItem.id + '; now synchronized');
+        //changed = true;
+      }
+    }
+    //if(changed) {b = b.sort(this.compareById);}
+  }
 /*
   // synchronize_b_to_a -- clean configured list from unneeded deleted items
   synchronize_b_to_a(a,b){
@@ -111,7 +147,8 @@ export class AppComponent implements OnInit, OnDestroy {
     to_be_deleted(item){
        if( item.instances == -1 ){
          return item;
-       else { return null;}
+       } else { 
+         return null;
     }
     for(let aItem of a){
       if(b) {

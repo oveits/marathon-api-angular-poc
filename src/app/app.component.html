@@ -1,5 +1,6 @@
 <input #box (keyup.enter)="0">
 <button (click)="this.putRestItems(box.value)">Add an App</button>
+<button (click)="this.provision_a_to_b(restItemsConfigured, restItems)">Clean deleted items</button>
 <h1>Apps</h1>
 <div *ngFor="let restItemConfigured of restItemsConfigured">
   <!-- <span *ngIf="restItemConfigured.instances > -1 || findRestItemById(restItemConfigured.id)"> -->
