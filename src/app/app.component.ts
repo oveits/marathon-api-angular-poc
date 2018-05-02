@@ -24,7 +24,7 @@ export class AppComponent implements OnInit, OnDestroy {
   restItems : Observable<RestItem[]> = [];
   restItemsConfigured : Observable<RestItem[]> = [];
   updateAlways=true;
-  token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjQ0MzExMjksImlhdCI6MTUyMzk5OTEyOSwiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.vPd4YMQ4GFWaDeEYgaALBLKBJUFeGF6KzFIkgdMl_g0';
+  token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjQ5NDE2NzQsImlhdCI6MTUyNDUwOTY3NCwiaXNzIjiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0OD4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.-Uwq4I_Zmdnf1gPTFlwc1icOJJk_3c7KO8xfrYdDgk';
 
   constructor(private _http: HttpClient) {
   }
@@ -71,6 +71,9 @@ export class AppComponent implements OnInit, OnDestroy {
                   // provision new items and perform garbage collection (clean deleted items)
                   this.provision_a_to_b(this.restItemsConfigured, this.restItems);
 
+                  // healthCheck
+                  this.healthCheckAll(this.restItemsConfigured);
+
             },
             err => {
               console.log("Error occured");
@@ -83,6 +86,34 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(){
     this.alive = false;
+  }
+
+  externalServiceURL(item){
+    return("http://" + item.labels.HAPROXY_0_VHOST + item.labels.HAPROXY_0_PATH);
+  }
+
+  healthCheckAll(a){
+    for(let item of a){
+      this.healthCheck(item);
+    }
+  }
+
+  healthCheck(item){
+    return this.healthCheckService(item)
+            .subscribe(
+        res => {
+          console.log(res);
+          item.healthy = true;
+        },
+        err => {
+          console.log("Error occured");
+          item.healthy = false;
+        }
+      );
+  }
+    
+  healthCheckService(item){
+    return this._http.get<any>(this.externalServiceURL(item), { observe: 'response' }); 
   }
 
   /*
@@ -203,6 +234,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }
   }
 
+/*
   getRestItemsWithPipe(): Observable<RestItem[]>{
     return this._http.get<RestItem[]>(this.restURL + "/", this.httpOptions)
       .pipe(
@@ -214,6 +246,7 @@ export class AppComponent implements OnInit, OnDestroy {
        )
       );
   }
+*/
 
   getRestItems(): Observable<RestItem[]>{
     return this._http.get<RestItem[]>(this.restURL + "/", this.httpOptions);
@@ -408,6 +441,8 @@ this.httpOptions);
     return this._http.delete<any>(this.restURL + "/" + id,this.httpOptions);
   }
 
+
+}
   interface App {
     id: String;
     deployments: String;
@@ -418,5 +453,3 @@ this.httpOptions);
     tasksRunning: String;
   }
 
-
-}

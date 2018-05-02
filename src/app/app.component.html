@@ -5,7 +5,7 @@
 <h1>Apps</h1>
 <div *ngFor="let restItemConfigured of restItemsConfigured">
   <!-- <span *ngIf="restItemConfigured.instances > -1 || findRestItemById(restItemConfigured.id)"> -->
-  <h1><a href="http://195.201.17.1{{restItemConfigured.id}}" [innerHTML]="restItemConfigured.id">Loading...</a></h1>
+  <h1>{{restItemConfigured.healthy}}<!-- <span *ngIf="healty({{restItemConfigured.id}})">healthy</span>--><a href="http://195.201.17.1{{restItemConfigured.id}}" [innerHTML]="restItemConfigured.id">Loading...</a></h1>
   <h2>Number of configured Containers: <span [innerHTML]="restItemConfigured.instances">Loading...</span></h2>
   <span *ngFor="let restItem of findRestItemById(restItemConfigured.id)">
     <h2>Number of Deployments: <span [innerHTML]="restItem.deployments.length">Loading...</span></h2>
