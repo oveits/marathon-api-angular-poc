@@ -114,6 +114,9 @@ export class AppComponent implements OnInit, OnDestroy {
    */
   createItem(id : String, instances : String){
     if(!id){ return("createItem called with no id; returning");}
+    if(id.charAt(0) !== "/") {
+      id = "/" + id;
+    }
     if(!instances){ instances = "1";}
     let found = this.restItemsConfigured.find(function (item) { return item.id === id; });
     if(typeof found === "undefined"){
