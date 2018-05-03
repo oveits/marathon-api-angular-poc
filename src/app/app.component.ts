@@ -136,7 +136,7 @@ export class AppComponent implements OnInit, OnDestroy {
     for(let aItem of a){
       let found = null;
       if(b) {
-        let found = b.find(function (bItem) { return bItem.id === aItem.id; })
+        found = b.find(function (bItem) { return bItem.id === aItem.id; })
       }
       if(!found){
         b.push(aItem);
