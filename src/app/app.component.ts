@@ -4,9 +4,23 @@ import { TimerObservable } from "rxjs/observable/TimerObservable";
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/takeWhile';
 import { catchError, map, tap } from 'rxjs/operators';
-import { isArray } from '@angular/facade/lang';
+//import { isArray } from '@angular/facade/lang';
 // not tested:
 //import 'rxjs/add/operator/retry';
+
+  interface App {
+    id: String;
+    deployments: String;
+    configuredInstances: String;
+    tasksStaged: String;
+    tasksHealthy: String;
+    tasksUnhealthy: String;
+    tasksRunning: String;
+  }
+
+  interface Apps {
+    apps: App[];
+  }
 
 
 @Component({
@@ -20,17 +34,19 @@ export class AppComponent implements OnInit, OnDestroy {
   syncIntervalTimerMsec = 5000;
   intervalTimerMsec = 5000;
   private alive : boolean = true;
-  private restURL : String = "http://94.130.187.229/service/marathon/v2/apps";
-  restItems : Observable<RestItem[]> = [];
-  restItemsConfigured : Observable<RestItem[]> = [];
+  private restURL : string = "http://94.130.187.229/service/marathon/v2/apps";
+  restItems = [];
+  restItemsConfigured = [];
   updateAlways=true;
-  token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjQ5NDE2NzQsImlhdCI6MTUyNDUwOTY3NCwiaXNzIjiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0OD4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.-Uwq4I_Zmdnf1gPTFlwc1icOJJk_3c7KO8xfrYdDgk';
+  token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjU4MDcxNjAsImlhdCI6MTUyNTM3NTE2MCwiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.ghi5W7id3MvGj92rNlP9LsZtTd91RIcZXosl_zxVvjo';
+  //token = 'eyJhbGciOiJIUzI1NiIsImtpZCI6InNlY3JldCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIzeUY1VE9TemRsSTQ1UTF4c3B4emVvR0JlOWZOeG05bSIsImVtYWlsIjoib2xpdmVyLnZlaXRzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE1MjQ0MzExMjksImlhdCI6MTUyMzk5OTEyOSwiaXNzIjoiaHR0cHM6Ly9kY29zLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNjI1MzMxNzc0ODE4NzQ5MDc3NCIsInVpZCI6Im9saXZlci52ZWl0c0BnbWFpbC5jb20ifQ.vPd4YMQ4GFWaDeEYgaALBLKBJUFeGF6KzFIkgdMl_g0';
 
   constructor(private _http: HttpClient) {
   }
 
   ngOnInit() {
     this.httpOptions = {
+      //observe: 'body',
       headers: new HttpHeaders({
         'Content-Type':  'application/json',
         'Authorization': 'token=' + this.token
@@ -60,16 +76,20 @@ export class AppComponent implements OnInit, OnDestroy {
                 res => { 
                   console.log('getRestItems res:'); 
     //this.createItem("/hello", 1);
-                  console.log(res.apps); 
+                  console.log(res); 
+                  console.log(res['apps']); 
+                  //console.log(res.apps);
 
                   // update discovered items list:
-                  this.restItems = res.apps.sort(this.compareById);
+                  this.restItems = res['apps'].sort(this.compareById);
 
                   // add new discoverd items to the list of configured items:
                   this.synchronize_a_to_b(this.restItems, this.restItemsConfigured);
  
                   // provision new items and perform garbage collection (clean deleted items)
                   this.provision_a_to_b(this.restItemsConfigured, this.restItems);
+/*
+*/
 
                   // healthCheck
                   this.healthCheckAll(this.restItemsConfigured);
@@ -125,7 +145,10 @@ export class AppComponent implements OnInit, OnDestroy {
    */
   createItem(id : String, instances : String){
     if(!id){ return("createItem called with no id; returning");}
-    if(!instances){ instances = 1;}
+    if(id.charAt(0) !== "/") {
+      id = "/" + id;
+    }
+    if(!instances){ instances = "1";}
     let found = this.restItemsConfigured.find(function (item) { return item.id === id; });
     if(typeof found === "undefined"){
       this.restItemsConfigured.push({"id": id, "instances": instances});
@@ -145,8 +168,9 @@ export class AppComponent implements OnInit, OnDestroy {
      */
     let changed = false;
     for(let aItem of a){
+      let found = null;
       if(b) {
-        let found = b.find(function (bItem) { return bItem.id === aItem.id; })
+        found = b.find(function (bItem) { return bItem.id === aItem.id; })
       }
       if(!found){
         b.push(aItem);
@@ -167,6 +191,7 @@ export class AppComponent implements OnInit, OnDestroy {
      */
     let changed = false;
     for(let aItem of a){
+      let found = null;
       if(b) {
         let found = b.find(function (bItem) { return bItem.id === aItem.id; })
       }
@@ -235,21 +260,25 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
 /*
-  getRestItemsWithPipe(): Observable<RestItem[]>{
+  getRestItemsWithPipe(): Apps{
     return this._http.get<RestItem[]>(this.restURL + "/", this.httpOptions)
       .pipe(
-        tap(),
+        tap()
         //map(res => this.myRestItems = res),
         //tap(apps => this.log('fetched apps')) //,
         //tap(apps => this.restItems = apps; ),
-        //catchError(this.handleError('getRestItems', [])
-       )
+        //catchError(this.handleError('getRestItems', []))
       );
   }
 */
 
-  getRestItems(): Observable<RestItem[]>{
-    return this._http.get<RestItem[]>(this.restURL + "/", this.httpOptions);
+/*
+  getRestItems(): Observable<any[]>{
+    return this._http.get<any[]>(this.restURL + "/", this.httpOptions);
+  }
+*/
+  getRestItems<Apps>(){
+    return this._http.get<Apps>(this.restURL + "/", this.httpOptions);
   }
 
   patchRestItems( body : Object ){
@@ -259,7 +288,7 @@ export class AppComponent implements OnInit, OnDestroy {
       this.httpOptions) ;
   }
 
-  patchInstances( id : String, instances : Integer ) {
+  patchInstances( id : String, instances ) {
 
     if( instances < 0){ return -1; }
     var body = [{"id": id,"instances": instances}];
@@ -390,7 +419,7 @@ export class AppComponent implements OnInit, OnDestroy {
       "path": "/"
     }
   ],
-  "instances": this.findRestItemById(id) ? this.findRestItemById(id).instances : 1,
+  "instances": 1,
   "labels": {
     "HAPROXY_DEPLOYMENT_GROUP": "nginx-hostname",
     "HAPROXY_0_REDIRECT_TO_HTTPS": "false",
@@ -443,13 +472,3 @@ this.httpOptions);
 
 
 }
-  interface App {
-    id: String;
-    deployments: String;
-    configuredInstances: String;
-    tasksStaged: String;
-    tasksHealthy: String;
-    tasksUnhealthy: String;
-    tasksRunning: String;
-  }
-
